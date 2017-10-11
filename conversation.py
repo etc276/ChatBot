@@ -21,9 +21,9 @@ def start(bot, update):
     reply_keyboard = [['joke', 'guess']]
 
     update.message.reply_text(
-        "Hi! I'm a Bot, nice to meet you.\n"
-        "Send /cancel to stop talking to me\n"
-        "Would you like joke or guess ?",
+        "哈囉，我是機器人\n"
+        "/cancel to stop conversation.\n"
+        "你喜歡聽笑話還是猜謎 ??",
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True)
     )
@@ -32,28 +32,60 @@ def start(bot, update):
 
 
 def joke(bot, update):
-    reply_keyboard = [['1', '2', '3']]
-    text = update.message.text
-    update.message.reply_text("haha, you say %s ?\n" % text)
+    reply_keyboard = [['0', '5', '10']]
+    update.message.reply_text(
+    "那天我到一間小店吃午餐\n"
+
+    "跟老闆點了排骨飯\n"
+
+    "但老闆卻上弄碗排骨麵\n"
+
+    "端上來時，我看著老闆問\n"
+
+    "「老闆，我剛點的是排骨飯耶」\n"
+
+    "老闆抓抓頭，一臉尷尬\n"
+
+    "「不然我幫你加點滷大腸好嗎?」\n"
+
+    "「蛤？」我疑惑\n"
+
+    "老闆：「沒有啦，我想說齁，那個加腸變飯啦...」")
+
+    update.message.reply_text(
+        "請給分",        
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard,
+                                         one_time_keyboard=True)
+    )
     return JOKE
 
 
 def guess(bot, update):
-    reply_keyboard = [['1', '2', '3']]
-    text = update.message.text
-    update.message.reply_text("c8c8, you say %s ?\n" % text)
+    reply_keyboard = [['0', '5', '10']]
+    update.message.reply_text("哪個殺手只會講英文 ?? (給你五秒唷)")
+    time.sleep(5)
+    update.message.reply_text("銀翼殺手")
+    update.message.reply_text(
+        "請給分",        
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard,
+                                         one_time_keyboard=True)
+    )
     return GUESS
 
 
 def score(bot, update):
-    text = update.message.text
-    update.message.reply_text("higher")
+    reply_keyboard = [['0', '5', '10']]
+    update.message.reply_text(
+        "高一點嘛QQ",
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard,
+                                         one_time_keyboard=True)
+    )
     return SCORE
 
 
 def end(bot, update):
     text = update.message.text
-    update.message.reply_text("bye bye")
+    update.message.reply_text("好啦掰晡, 才%s分QQ" % text)
     return ConversationHandler.END
 
 
