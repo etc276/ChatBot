@@ -3,6 +3,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler,
                           Filters, RegexHandler, ConversationHandler)
 
 import logging
+import time
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -18,6 +19,7 @@ CHOOSING, JOKE, GUESS, SCORE = range(4)
 
 
 def start(bot, update):
+    # reply and show keyboard choice
     reply_keyboard = [['joke', 'guess']]
 
     update.message.reply_text(
@@ -28,12 +30,14 @@ def start(bot, update):
             reply_keyboard, one_time_keyboard=True)
     )
 
+    # go to CHOOSING state
     return CHOOSING
 
 
 def joke(bot, update):
     reply_keyboard = [['0', '5', '10']]
     update.message.reply_text(
+    # haha
     "那天我到一間小店吃午餐\n"
 
     "跟老闆點了排骨飯\n"
@@ -107,12 +111,15 @@ def main():
     dp = updater.dispatcher
 
     conv_handler = ConversationHandler(
+        # initial state (recieve '/start', then go start())
         entry_points=[CommandHandler('start', start)],
 
         states={
+            # now is CHOOSING state, if receive 'joke' then joke()
             CHOOSING: [RegexHandler('^joke$', joke),
                        RegexHandler('^guess$', guess)],
 
+            # now is JOKE state, whatever receive then score() 
             JOKE:  [MessageHandler(Filters.text, score)],
             GUESS: [MessageHandler(Filters.text, score)],
             SCORE: [MessageHandler(Filters.text, end  )],
