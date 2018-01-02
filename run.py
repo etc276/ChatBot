@@ -5,6 +5,8 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler,
 import logging
 import time
 import Beauty
+import cardcode
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -14,7 +16,7 @@ TOKEN = '455989974:AAG1_pt549X9YV64asFXixuaMl-lchzidgk'
 PTT_URL = 'https://www.ptt.cc'
 
 
-START, BEAUTY, JOKE, GUESS, END = range(5)
+START, BEAUTY, DECK, GUESS, END = range(5)
 
 index = None;
 
@@ -78,19 +80,21 @@ def allBeauty(bot, update):
 
     chat_id = update.message.chat_id
     for url in beauty_img_urls:
+        if url==beauty_img_urls[0]:
+            continue
         bot.send_photo(chat_id=chat_id, photo=url)
 
     return END
 
 
-def joke(bot, update):
-    reply_keyboard = [['0', '5', '10']]
-    update.message.reply_text(
-        "haha",
-        reply_markup=ReplyKeyboardMarkup(reply_keyboard,
-                                         one_time_keyboard=True)
-    )
+def getDeck(bot, update):
+    deck_codes = cardcode.get_deck_code()
+    chat_id = update.message.chat_id
 
+    for code in deck_codes:
+        bot.send_message(chat_id=chat_id, text=code)
+    
+    bot.send_message(chat_id=chat_id, text="say something to me")
     return END
 
 
@@ -106,9 +110,10 @@ def guess(bot, update):
     )
     return END
 
+
 def start(bot, update):
     # reply and show keyboard choice
-    reply_keyboard = [['beauty', 'joke', 'guess']]
+    reply_keyboard = [['beauty', 'code', 'guess']]
 
     update.message.reply_text(
         "/cancel to stop conversation.\n",
@@ -152,13 +157,13 @@ def main():
 
         states={
             START: [RegexHandler('^beauty$', showBeauty),
-                    RegexHandler('^joke$', joke),
+                    RegexHandler('^code$', getDeck),
                     RegexHandler('^guess$', guess)],
 
             BEAUTY: [RegexHandler('^OK$', allBeauty),
                     RegexHandler('^next$', showBeauty)],
 
-            JOKE: [MessageHandler(Filters.text, end)],
+            DECK: [MessageHandler(Filters.text, end)],
             GUESS:[MessageHandler(Filters.text, end)],
 
             END: [MessageHandler(Filters.text, end)]

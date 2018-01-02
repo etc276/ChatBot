@@ -61,21 +61,3 @@ def parse(dom):
         if re.match(r'^https?://(i.)?(m.)?imgur.com', link['href']):
             img_urls.append(link['href'])
     return img_urls
-
-
-def save(img_urls, title):
-    if img_urls:
-        try:
-            dname = title.strip()  # 用 strip() 去除字串前後的空白
-            os.makedirs(dname)
-            for img_url in img_urls:
-                if img_url.split('//')[1].startswith('m.'):
-                    img_url = img_url.replace('//m.', '//i.')
-                if not img_url.split('//')[1].startswith('i.'):
-                    img_url = img_url.split('//')[0] + '//i.' + img_url.split('//')[1]
-                if not img_url.endswith('.jpg'):
-                    img_url += '.jpg'
-                fname = img_url.split('/')[-1]
-                urllib.request.urlretrieve(img_url, os.path.join(dname, fname))
-        except Exception as e:
-            print(e)
