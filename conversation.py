@@ -4,12 +4,14 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler,
 
 import logging
 import time
+import beauty
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 TOKEN = '455989974:AAG1_pt549X9YV64asFXixuaMl-lchzidgk'
+PTT_URL = 'https://www.ptt.cc'
 
 # 0: choose joke or guess
 # 1: choose joke type
@@ -29,6 +31,28 @@ def start(bot, update):
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True)
     )
+
+    current_page = beauty.get_web_page(PTT_URL + '/bbs/Beauty/index.html')
+    if current_page:
+        articles = []  # 全部的今日文章
+        date = time.strftime("%m/%d").lstrip('0')  # 今天日期, 去掉開頭的 '0' 以符合 PTT 網站格式
+        current_articles, prev_url = beauty.get_articles(current_page, date)  # 目前頁面的今日文章
+        while current_articles:  # 若目前頁面有今日文章則加入 articles，並回到上一頁繼續尋找是否有今日文章
+            articles += current_articles
+            current_page = beauty.get_web_page(PTT_URL + prev_url)
+            current_articles, prev_url = beauty.get_articles(current_page, date)
+
+        # 已取得文章列表，開始進入各文章讀圖
+        for article in articles:
+            if (article['push_count'] <= 2):
+                continue
+            print('Processing', article)
+            page = beauty.get_web_page(PTT_URL + article['href'])
+            if page:
+                img_urls = beauty.parse(page)
+    chat_id = update.message.chat_id
+    for img_url in img_urls:
+        bot.send_photo(chat_id=chat_id, photo=img_url)
 
     # go to CHOOSING state
     return CHOOSING
