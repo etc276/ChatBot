@@ -5,7 +5,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler,
 import logging
 import time
 import Beauty
-import cardcode
+import Cardcode
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -18,28 +18,6 @@ PTT_URL = 'https://www.ptt.cc'
 
 START, BEAUTY, DECK, GUESS, END = range(5)
 
-index = None;
-
-def findBeauty():
-    global beauty_articles
-    global beauty_img_urls
-
-    beauty_articles = []
-    beauty_img_urls = []
-
-    current_page = Beauty.get_web_page(PTT_URL + '/bbs/Beauty/index.html')
-    if current_page:
-        articles = []  # 全部的今日文章
-        date = time.strftime("%m/%d").lstrip('0')  # 今天日期, 去掉開頭的 '0' 以符合 PTT 網站格式
-        current_articles, prev_url = Beauty.get_articles(current_page, date)  # 目前頁面的今日文章
-        while current_articles:  # 若目前頁面有今日文章則加入 articles，並回到上一頁繼續尋找是否有今日文章
-            articles += current_articles
-            current_page = Beauty.get_web_page(PTT_URL + prev_url)
-            current_articles, prev_url = Beauty.get_articles(current_page, date)
-
-        beauty_articles = articles
-        print("num of article: ", len(articles))
-
 
 def showBeauty(bot, update):
     global index
@@ -49,14 +27,14 @@ def showBeauty(bot, update):
     if index >= len(beauty_articles):
         update.message.reply_text("there is no more beauty today")
         return START
-        
+    
+    while(beauty_articles[index]['push_count']<0):
+        index = index + 1
+
     article = beauty_articles[index]
-    if(article['push_count'] < 0):
-        index = index + 1;
-        showBeauty;
     page = Beauty.get_web_page(PTT_URL + article['href'])
     if page:
-        beauty_img_urls = Beauty.parse(page)
+        beauty_img_urls = Beauty.parse_img(page)
     
     img_url = beauty_img_urls
     chat_id = update.message.chat_id
@@ -80,7 +58,7 @@ def allBeauty(bot, update):
 
     chat_id = update.message.chat_id
     for url in beauty_img_urls:
-        if url==beauty_img_urls[0]:
+        if url == beauty_img_urls[0]:
             continue
         bot.send_photo(chat_id=chat_id, photo=url)
 
@@ -88,7 +66,7 @@ def allBeauty(bot, update):
 
 
 def getDeck(bot, update):
-    deck_codes = cardcode.get_deck_code()
+    deck_codes = Cardcode.get_deck_code()
     chat_id = update.message.chat_id
 
     for code in deck_codes:
@@ -144,12 +122,16 @@ def error(bot, update, error):
 
 
 def main():
+    # init variable for Beauty
+    global index
+    global beauty_articles
+    
+    index = 0
+    beauty_articles = Beauty.get_today_articles()
+
+    # set parameter for bot
     updater = Updater(TOKEN)
     dp = updater.dispatcher
-    global index
-    index = 0
-
-    findBeauty()
 
     conv_handler = ConversationHandler(
         # initial state (recieve '/start', then go start())

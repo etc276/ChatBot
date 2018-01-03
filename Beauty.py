@@ -22,7 +22,17 @@ def get_web_page(url):
         return resp.text
 
 
-def get_articles(dom, date):
+def parse_img(dom):
+    soup = BeautifulSoup(dom, 'html.parser')
+    links = soup.find(id='main-content').find_all('a')
+    img_urls = []
+    for link in links:
+        if re.match(r'^https?://(i.)?(m.)?imgur.com', link['href']):
+            img_urls.append(link['href'])
+    return img_urls
+
+
+def get_this_page_articles(dom, date):
     soup = BeautifulSoup(dom, 'html.parser')
 
     # 取得上一頁的連結
@@ -53,11 +63,17 @@ def get_articles(dom, date):
     return articles, prev_url
 
 
-def parse(dom):
-    soup = BeautifulSoup(dom, 'html.parser')
-    links = soup.find(id='main-content').find_all('a')
-    img_urls = []
-    for link in links:
-        if re.match(r'^https?://(i.)?(m.)?imgur.com', link['href']):
-            img_urls.append(link['href'])
-    return img_urls
+def get_today_articles():
+
+    current_page = get_web_page(PTT_URL + '/bbs/Beauty/index.html')
+    if current_page:
+        articles = []  # 全部的今日文章
+        date = time.strftime("%m/%d").lstrip('0')  # 今天日期, 去掉開頭的 '0' 以符合 PTT 網站格式
+        current_articles, prev_url = get_this_page_articles(current_page, date)  # 目前頁面的今日文章
+        while current_articles:  # 若目前頁面有今日文章則加入 articles，並回到上一頁繼續尋找是否有今日文章
+            articles += current_articles
+            current_page = get_web_page(PTT_URL + prev_url)
+            current_articles, prev_url = get_this_page_articles(current_page, date)
+
+    return articles
+

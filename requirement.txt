@@ -1,9 +1,3 @@
+python-telegram-bot
 beautifulsoup4
-cycler
-matplotlib
-numpy
-pyparsing
-python-dateutil
-pytz
 requests
-six
